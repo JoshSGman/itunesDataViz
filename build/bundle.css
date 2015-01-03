@@ -1,0 +1,79 @@
+/* Neat 1.7.0
+ * http://neat.bourbon.io
+ * Copyright 2012-2014 thoughtbot, inc.
+ * MIT License */
+html {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+*, *:before, *:after {
+  -webkit-box-sizing: inherit;
+  -moz-box-sizing: inherit;
+  box-sizing: inherit; }
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline; }
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block; }
+
+body {
+  line-height: 1;
+  width: 960px;
+  margin: 0 auto; }
+
+main {
+  min-height: 500px; }
+
+ol, ul {
+  list-style: none; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before, blockquote:after, q:before, q:after {
+  content: '';
+  content: none; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+a {
+  color: #404040; }
+
+button {
+  display: block;
+  width: 60%;
+  font-family: 'caviar_dreamsregular', 'Times New Roman';
+  background-color: #FFFFFF;
+  background-image: -webkit-linear-gradient( white 17%, #f1f1f1 95%);
+  background-image: linear-gradient( white 17%, #f1f1f1 95%);
+  border: 0px;
+  margin: 15px auto;
+  padding: 5px 0px;
+  outline: none;
+  cursor: pointer; }
+  button:hover {
+    background-image: -webkit-linear-gradient( #f1f1f1 95%, white 17%);
+    background-image: linear-gradient( #f1f1f1 95%, white 17%); }
+  button:active {
+    background-image: -webkit-linear-gradient( white 17%, #f1f1f1 95%);
+    background-image: linear-gradient( white 17%, #f1f1f1 95%); }
+
+body {
+  font-family: helvetica;
+  font-weight: lighter; }
+
+svg {
+  margin: auto; }
+
+.pie-legend-text {
+  stroke: none; }
