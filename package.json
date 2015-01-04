@@ -37,6 +37,7 @@
   "dependencies": {
     "d3": "^3.5.3",
     "lodash": "^2.4.1",
-    "moment": "^2.8.4"
+    "moment": "^2.8.4",
+    "numeral": "^1.5.3"
   }
 }

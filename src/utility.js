@@ -74,7 +74,15 @@ var Utility = {
 
     }, {});
 
-    return this.intoArray(reduced);
+    var reducedArr = this.intoArray(reduced);
+
+    var sorted = reducedArr.sort(function(a, b){
+      var aKey = Object.keys(a)[0];
+      var bKey = Object.keys(b)[0];
+      return  b[bKey].length - a[aKey].length;     
+    });
+    
+    return sorted;
   },
 
   groupByPlays : function(data){
@@ -102,6 +110,22 @@ var Utility = {
       return aDate - bDate;      
     });
     return sorted;
+  },
+
+  grabAvailableYears : function(data){
+    var grouped = _.groupBy(data, function(val, key){
+      var year = moment(val.dateAdded).format('YYYY');      
+      return year;
+    });
+
+    return Object.keys(grouped).filter(function(v){ return v && v > 2000; });
+  },
+
+  filterYear : function(data, year){
+    var filtered = data.filter(function(d){  
+      return moment(d.dateAdded).format('YYYY') === year;
+    });
+    return filtered;
   }
 
 };

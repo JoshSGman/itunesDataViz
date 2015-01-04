@@ -1,4 +1,6 @@
 
+var numeral = require('numeral');
+
 var Colors = require('./colors');
 var Utility = require('./utility');
 var colors = Colors.palette();
@@ -228,9 +230,11 @@ var width = 960;
 var height = 600;
 var radius = Math.min(width, height) / 2;
 
+var formattedGenres = Utility.formatGenres(genres);
+
 var arc = d3.svg.arc()
             .outerRadius(radius - 10)
-            .innerRadius(radius - 70);   
+            .innerRadius(radius - 60);   
 
 var pie = d3.layout.pie()
     .sort(null)
@@ -239,30 +243,16 @@ var pie = d3.layout.pie()
       return d[key].length;      
     });
 
-var totalSeconds = 3000;
+var totalSeconds = 1500;
 
 var GenrePie = function(svg, data){
 
-
-  var formattedGenres = Utility.formatGenres(genres);
   var byGenre = Utility.groupByGenre(data, formattedGenres);
 
-  var startData = byGenre.map(function(d, i){ 
-
-    var key = Object.keys(d)[0]; 
-    var g = {};
-
-    var start = d[key].length/10; //Math.floor((Math.random()*10));
-
-    var datum = [];
-
-    for (var k = 0; k <= start; k++) {
-      datum.push(d[key][0]);
-    }
-
-    g[key] = datum;
-    return g;
-  });
+  var totalSongs = byGenre.reduce(function(total, g){
+    var key = Object.keys(g)[0];
+    return total += g[key].length;
+  }, 0);
 
   var accruedSeconds = 0;
 
@@ -271,50 +261,55 @@ var GenrePie = function(svg, data){
       .enter().append("g")
       .attr("class", "arc");
 
-  this.g.append("path")      
-      .attr('class', 'arcs')
-      .attr("stroke", "white")
-      .style("fill", function(d) {          
-        return colors(d.value); 
-      })
-      .transition()
-      .delay(function(d, i) {
-        var accrued = accruedSeconds;
-        accruedSeconds += (d.value / totalSeconds) * totalSeconds;
-        return accrued; 
-      })
-      .duration(function(d, i){
-        return (d.value / totalSeconds) * totalSeconds; 
-      })
-      .attrTween('d', function(d) {
-           var i = d3.interpolate(d.startAngle, d.endAngle);
-           return function(t) {
-               d.endAngle = i(t);
-             return arc(d);
-           };
+  this.path = this.g.append("path")      
+                  .attr('class', 'arcs')
+                  .attr("stroke", "white")
+                  .style("fill", function(d) {          
+                    return colors(d.value); 
+                  })
+                  .transition()
+                  .delay(function(d, i) {
+                    var accrued = accruedSeconds;
+                    accruedSeconds += (d.value / totalSeconds) * totalSeconds;
+                    return accrued; 
+                  })
+                  .duration(function(d, i){
+                    return (d.value / totalSeconds) * totalSeconds; 
+                  })
+                  .attrTween('d', function(d) {
+                       var i = d3.interpolate(d.startAngle, d.endAngle);
+                       return function(t) {
+                           d.endAngle = i(t);
+                         return arc(d);
+                       };
+                  });
+
+  this.g.append("text")
+      .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .attr('class', 'arc-text')
+      .style("text-anchor", "middle")
+      .text(function(d) {   
+        var percent = d.value / totalSongs * 100;        
+        return percent > 4 ? d.value : ""; 
       });
 
-  this.generatePieLegend(svg, byGenre);
-};
 
-GenrePie.prototype.generatePieLegend = function(svg, byGenre){
-
-  var legendRectSize = 15;
+  var legendRectSize = 10;
   var legendSpacing = 5;
 
-  var accruedSeconds = 0;
-
-  var legend = svg.selectAll('.pie-legend')
+  this.legend = svg.selectAll('.pie-legend')
                   .data(byGenre)
                   .enter()
                   .append('g')
                   .attr('class', 'pie-legend')
                   .attr('transform', function(d, i){                    
-                    var horz = -2.5 * legendRectSize;
+                    var horz = -1.8 * legendRectSize;
                     return 'translate(' + horz + ', -1000)';
                   });
 
-  legend.append('rect')
+  this.legend
+    .append('rect')
     .attr('width', legendRectSize)
     .attr('height', legendRectSize)
     .style('fill', function(d){         
@@ -323,13 +318,19 @@ GenrePie.prototype.generatePieLegend = function(svg, byGenre){
     })
     .style('stroke', 'white'); 
 
-  legend.append('text')
+  this.legend
+    .append('text')
     .attr('class', 'pie-legend-text')
     .attr('x', legendRectSize + legendSpacing)
     .attr('y', legendRectSize - legendSpacing + 5)
-    .text(function(d) { return Object.keys(d)[0].toUpperCase(); }); 
+    .text(function(d) { 
+      var key = Object.keys(d)[0];
 
-  legend
+      var percent = numeral(d[key].length / totalSongs).format('0.00%');
+      return key.toUpperCase() + ' - ' + percent; 
+    }); 
+
+  this.legend
     .transition()
     .delay(function(d, i) {      
       return i * totalSeconds/byGenre.length; 
@@ -340,15 +341,117 @@ GenrePie.prototype.generatePieLegend = function(svg, byGenre){
     .attr('transform', function(d, i) {
       var height = legendRectSize + legendSpacing;
       var offset =  height * colors.domain().length / 1.65;
-      var horz = -2.5 * legendRectSize;
-      var vert = i * height - offset;      
+      var horz = -6 * legendRectSize;
+      var vert = i * height - offset;
       return 'translate(' + horz + ',' + vert + ')';
     });
 
 };
 
-GenrePie.prototype.update = function(svg, byGenre){
-  
+GenrePie.prototype.update = function(svg, data){
+
+  var accruedSeconds = 0;
+
+  var byGenre = Utility.groupByGenre(data, formattedGenres);
+
+  var totalSongs = byGenre.reduce(function(total, g){
+    var key = Object.keys(g)[0];
+    return total += g[key].length;
+  }, 0);
+
+
+  this.g.remove();
+
+  this.g = svg.selectAll(".arc")
+      .data(pie(byGenre))
+      .enter().append("g")
+      .attr("class", "arc");
+
+  this.path = this.g.append("path")      
+                  .attr('class', 'arcs')
+                  .attr("stroke", "white")
+                  .style("fill", function(d) {          
+                    return colors(d.value); 
+                  })
+                  .transition()
+                  .delay(function(d, i) {
+                    var accrued = accruedSeconds;
+                    accruedSeconds += d.value / totalSongs * totalSeconds;
+                    return accrued; 
+                  })
+                  .duration(function(d, i){
+                    return d.value / totalSongs * totalSeconds; 
+                  })
+                  .attrTween('d', function(d) {
+                       var i = d3.interpolate(d.startAngle, d.endAngle);
+                       return function(t) {
+                           d.endAngle = i(t);
+                         return arc(d);
+                       };
+                  });
+
+  this.g.append("text")
+      .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .attr('class', 'arc-text')
+      .style("text-anchor", "middle")
+      .text(function(d) {   
+        var percent = d.value / totalSongs * 100;        
+        return percent > 4 ? d.value : ""; 
+      });
+
+
+  var legendRectSize = 10;
+  var legendSpacing = 5;
+
+  this.legend.remove();
+
+  this.legend = svg.selectAll('.pie-legend')
+                  .data(byGenre)
+                  .enter()
+                  .append('g')
+                  .attr('class', 'pie-legend')
+                  .attr('transform', function(d, i){                    
+                    var horz = -1.8 * legendRectSize;
+                    return 'translate(' + horz + ', -1000)';
+                  });
+
+  this.legend
+    .append('rect')
+    .attr('width', legendRectSize)
+    .attr('height', legendRectSize)
+    .style('fill', function(d){         
+      var key = Object.keys(d)[0];
+      return colors(d[key].length); 
+    })
+    .style('stroke', 'white'); 
+
+  this.legend
+    .append('text')
+    .attr('class', 'pie-legend-text')
+    .attr('x', legendRectSize + legendSpacing)
+    .attr('y', legendRectSize - legendSpacing + 5)
+    .text(function(d) { 
+      var key = Object.keys(d)[0];
+      var percent = numeral(d[key].length / totalSongs).format('0.00%');
+      return key.toUpperCase() + ' - ' + percent; 
+    }); 
+
+  this.legend
+    .transition()
+    .delay(function(d, i) {      
+      return i * totalSeconds/byGenre.length; 
+    })
+    .duration(function(){
+      return totalSeconds/byGenre.length;
+    })         
+    .attr('transform', function(d, i) {
+      var height = legendRectSize + legendSpacing;
+      var offset =  height * colors.domain().length / 1.65;
+      var horz = -6 * legendRectSize;
+      var vert = i * height - offset;
+      return 'translate(' + horz + ',' + vert + ')';
+    });
 };
 
 module.exports = GenrePie;

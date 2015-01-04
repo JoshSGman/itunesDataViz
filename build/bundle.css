@@ -69,11 +69,16 @@ button {
     background-image: linear-gradient( white 17%, #f1f1f1 95%); }
 
 body {
-  font-family: helvetica;
+  font-family: Roboto;
   font-weight: lighter; }
 
 svg {
-  margin: auto; }
+  margin: auto;
+  border: 1px solid black; }
+
+.arc-text {
+  fill: white; }
 
 .pie-legend-text {
+  font-size: 12px;
   stroke: none; }
